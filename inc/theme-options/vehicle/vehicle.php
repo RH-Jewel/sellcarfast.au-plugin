@@ -59,8 +59,8 @@ if (class_exists('CSF')) {
           'placeholder' => esc_html__('Select a Product', 'drivco-core'),
           'desc'        => wp_kses_post('Select a <mark>Product</mark> to continue. You can create a new product here ( <a href="' . home_url() . '/wp-admin/edit.php?post_type=product">Product</a> )'),
           'chosen'      => true,
-          'options'    => 'posts',
-          'query_args' => array(
+          'options'     => 'posts',
+          'query_args'  => array(
             'post_type' => 'product',
             'tax_query' => array(
               array(

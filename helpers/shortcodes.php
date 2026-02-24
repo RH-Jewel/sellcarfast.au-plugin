@@ -624,7 +624,6 @@ function filter_sellcarfast()
     $states    = Egns_Helper::get_taxonomy_list('vehicle-states');
     $locations = Egns_Helper::get_taxonomy_list('location');
 
-
     function vehicle_product_counts()
     {
         $types   = array('auction_product', 'general_product', 'simulcast_product');
@@ -650,21 +649,25 @@ function filter_sellcarfast()
 
     $count = vehicle_product_counts();
 
-
 ?>
 
-
     <div class="search-wrapper">
-        <form method="get" action="<?php echo get_post_type_archive_link('vehicle'); ?>">
+        <form method="get" action="<?php echo get_post_type_archive_link('vehicle'); ?>" id="sellcarfastForm">
             <!-- Tabs -->
             <div class="tabs" id="auctionTabs">
                 <?php if (!empty($tabs) && !is_wp_error($tabs)) : ?>
                     <?php
                     $i = 0;
                     foreach ($tabs as $key => $tab) :
+                        $meta = get_term_meta($tab->term_id, 'drivco_tab_taxonomy', true);
                     ?>
-                        <div class="tab<?php echo $i == 0 ? ' active' : ''; ?>" data-type="<?php echo esc_attr($key ?? ''); ?>">
-                            <span class="icon">🚗</span> <?php echo esc_html($tab); ?>
+                        <div class="tab<?php echo $i == 0 ? ' active' : ''; ?>" data-type="<?php echo esc_attr($key); ?>">
+                            <?php if (!empty($meta['drivco_tab_logo']['url'])) : ?>
+                                <span class="icon">
+                                    <img src="<?php echo $meta['drivco_tab_logo']['url']; ?>" alt="<?php echo esc_attr($tab->name); ?>">
+                                </span>
+                            <?php endif; ?>
+                            <?php echo esc_html($tab->name); ?>
                         </div>
                     <?php
                         $i++;
@@ -672,54 +675,56 @@ function filter_sellcarfast()
                     ?>
                 <?php endif; ?>
             </div>
+            <!-- Hidden input to store selected tab -->
+            <input type="hidden" name="vehicle_tab" id="vehicleTabInput" value="">
 
             <!-- Filters Container -->
-            <div class="filters-box">
+            <div class="filters-box" style="position:relative;">
 
                 <div class="filter-row">
-                    <select name="vehicle_make" class="select-field">
+                    <select name="vehicle_make" id="vehicleMake" class="select-field">
                         <option value=""><?php echo esc_html__('All Makes', 'drivco-core') ?></option>
                         <?php if (!empty($makes) && !is_wp_error($makes)) : ?>
                             <?php foreach ($makes as $key => $make) : ?>
-                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($make); ?></option>
+                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($make->name); ?></option>
                             <?php endforeach;  ?>
                         <?php endif; ?>
                     </select>
 
-                    <select name="vehicle_model" class="select-field">
+                    <select name="vehicle_model" id="vehicleModel" class="select-field">
                         <option value=""><?php echo esc_html__('All Models', 'drivco-core') ?></option>
                         <?php if (!empty($models) && !is_wp_error($models)) : ?>
                             <?php foreach ($models as $key => $model) : ?>
-                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($model); ?></option>
+                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($model->name); ?></option>
                             <?php endforeach;  ?>
                         <?php endif; ?>
                     </select>
 
-                    <select name="vehicle_year" class="select-field">
+                    <select name="vehicle_year" id="vehicleYear" class="select-field">
                         <option value=""><?php echo esc_html__('Year', 'drivco-core') ?></option>
                         <?php if (!empty($years) && !is_wp_error($years)) : ?>
                             <?php foreach ($years as $key => $year) : ?>
-                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($year); ?></option>
+                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($year->name); ?></option>
                             <?php endforeach;  ?>
                         <?php endif; ?>
                     </select>
                 </div>
 
                 <div class="filter-row">
-                    <select name="vehicle_state" class="select-field">
+                    <select name="vehicle_states" id="vehicleState" class="select-field">
                         <option value=""><?php echo esc_html__('All States', 'drivco-core') ?></option>
                         <?php if (!empty($states) && !is_wp_error($states)) : ?>
                             <?php foreach ($states as $key => $state) : ?>
-                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($state); ?></option>
+                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($state->name); ?></option>
                             <?php endforeach;  ?>
                         <?php endif; ?>
                     </select>
 
-                    <select name="vehicle_location" class="select-field">
+                    <select name="vehicle_location" id="vehicleLocation" class="select-field">
                         <option value=""><?php echo esc_html__('All Locations', 'drivco-core') ?></option>
                         <?php if (!empty($locations) && !is_wp_error($locations)) : ?>
                             <?php foreach ($locations as $key => $location) : ?>
-                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($location); ?></option>
+                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($location->name); ?></option>
                             <?php endforeach;  ?>
                         <?php endif; ?>
                     </select>
@@ -728,26 +733,24 @@ function filter_sellcarfast()
                 </div>
 
                 <!-- Search button -->
-                <button class="search-btn" id="searchBtn">🔍 <?php echo esc_html__('Search', 'drivco-core') ?></button>
+                <button class="search-btn" id="searchBtn" type="submit">🔍 <?php echo esc_html__('Search', 'drivco-core') ?></button>
 
                 <!-- Sale Types -->
                 <div class="sale-types">
-
                     <label class="sale-item">
-                        <input type="checkbox" value="auction_product" class="sale-check"> <?php echo esc_html__('Bid Now', 'drivco-core') ?>
+                        <input type="checkbox" name="sale_type[]" value="auction_product" class="sale-check"> <?php echo esc_html__('Bid Now', 'drivco-core') ?>
                         <span class="count"><?php echo esc_html($count['auction_product']); ?></span>
                     </label>
 
                     <label class="sale-item">
-                        <input type="checkbox" value="general_product" class="sale-check"> <?php echo esc_html__('Buy Now', 'drivco-core') ?>
+                        <input type="checkbox" name="sale_type[]" value="general_product" class="sale-check"> <?php echo esc_html__('Buy Now', 'drivco-core') ?>
                         <span class="count"><?php echo esc_html($count['general_product']); ?></span>
                     </label>
 
                     <label class="sale-item">
-                        <input type="checkbox" value="simulcast_product" class="sale-check"> <?php echo esc_html__('Simulcast', 'drivco-core') ?>
+                        <input type="checkbox" name="sale_type[]" value="simulcast_product" class="sale-check"> <?php echo esc_html__('Simulcast', 'drivco-core') ?>
                         <span class="count"><?php echo esc_html($count['simulcast_product']); ?></span>
                     </label>
-
                 </div>
 
                 <div class="clear-btn" id="clearSaleTypes">
@@ -761,3 +764,102 @@ function filter_sellcarfast()
 <?php
 }
 add_shortcode('sellcarfast', 'filter_sellcarfast');
+
+
+
+
+// Get all vehicles based on the filters submitted 
+function get_filtered_vehicles($args = array())
+{
+
+    // Default empty filters
+    $vehicle_tab      = sanitize_text_field($_GET['vehicle_tab'] ?? ''); // new tab filter
+    $vehicle_make     = sanitize_text_field($_GET['vehicle_make'] ?? '');
+    $vehicle_model    = sanitize_text_field($_GET['vehicle_model'] ?? '');
+    $vehicle_year     = sanitize_text_field($_GET['vehicle_year'] ?? '');
+    $vehicle_state    = sanitize_text_field($_GET['vehicle_state'] ?? '');
+    $vehicle_location = sanitize_text_field($_GET['vehicle_location'] ?? '');
+    $custom_keyword   = sanitize_text_field($_GET['custom_keyword'] ?? '');
+    $sale_types       = $_GET['sale_type'] ?? array(); // array of selected meta values
+
+    // Build tax_query
+    $tax_query = array('relation' => 'AND');
+
+    if ($vehicle_tab) {
+        $tax_query[] = array(
+            'taxonomy' => 'vehicle-tab',
+            'field'    => 'slug',
+            'terms'    => $vehicle_tab,
+        );
+    }
+    if ($vehicle_make) {
+        $tax_query[] = array(
+            'taxonomy' => 'vehicle-make',
+            'field'    => 'slug',
+            'terms'    => $vehicle_make,
+        );
+    }
+    if ($vehicle_model) {
+        $tax_query[] = array(
+            'taxonomy' => 'vehicle-model',
+            'field'    => 'slug',
+            'terms'    => $vehicle_model,
+        );
+    }
+    if ($vehicle_year) {
+        $tax_query[] = array(
+            'taxonomy' => 'vehicle-year',
+            'field'    => 'slug',
+            'terms'    => $vehicle_year,
+        );
+    }
+    if ($vehicle_state) {
+        $tax_query[] = array(
+            'taxonomy' => 'vehicle-states',
+            'field'    => 'slug',
+            'terms'    => $vehicle_state,
+        );
+    }
+    if ($vehicle_location) {
+        $tax_query[] = array(
+            'taxonomy' => 'location',
+            'field'    => 'slug',
+            'terms'    => $vehicle_location,
+        );
+    }
+
+    // Only add tax_query if not empty
+    if (count($tax_query) === 1) {
+        $tax_query = []; // no tax filter applied
+    }
+
+    // Build meta_query
+    $meta_query = array();
+    if (!empty($sale_types) && is_array($sale_types)) {
+        $meta_query[] = array(
+            'key'     => 'EGNS_VEHICLE_META_ID',
+            'value'   => $sale_types,
+            'compare' => 'IN',
+        );
+    }
+
+    // WP_Query arguments
+    // $query_args = array_merge(array(
+    //     'post_type'      => 'vehicle',
+    //     'post_status'    => 'publish',
+    //     'posts_per_page' => -1,
+    //     's'              => $custom_keyword,
+    //     'tax_query'      => $tax_query,
+    //     'meta_query'     => $meta_query,
+    // ), $args);
+
+    // $query = new WP_Query($query_args);
+
+    // return $query;
+}
+
+
+// $vehicle_query = get_filtered_vehicles();
+
+
+// var_dump($vehicle_query); 

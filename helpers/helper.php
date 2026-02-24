@@ -131,15 +131,15 @@ if (!class_exists('Egns_Helper')) {
 		 * */
 		public static function get_taxonomy_list($taxonomy, $order = 'asc')
 		{
-			$data =  get_terms(array(
+			$args =  get_terms(array(
 				'taxonomy'   => $taxonomy,
 				'hide_empty' => false,
 				'order'      => $order,
 			));
 
 			$data_store = [];
-			foreach ($data as $location) {
-				$data_store[$location->slug] = $location->name;
+			foreach ($args as $data) {
+				$data_store[$data->slug] = $data;
 			}
 			return $data_store;
 		}
