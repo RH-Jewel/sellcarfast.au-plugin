@@ -720,7 +720,7 @@ function filter_sellcarfast()
                         <?php endif; ?>
                     </select>
 
-                    <select name="vehicle_location" id="vehicleLocation" class="select-field">
+                    <select name="locations" id="vehicleLocation" class="select-field">
                         <option value=""><?php echo esc_html__('All Locations', 'drivco-core') ?></option>
                         <?php if (!empty($locations) && !is_wp_error($locations)) : ?>
                             <?php foreach ($locations as $key => $location) : ?>
